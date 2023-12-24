@@ -1,0 +1,6 @@
+discord.py==2.3.2
+python-dotenv==1.0.0
+langchain==0.0.352
+langsmith==0.0.75
+openai==1.6.1
+tiktoken==0.5.2

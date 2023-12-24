@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  gpt-discord-bot:
+    env_file:
+      - .env
+    restart: always
+    build:
+      context: "."
