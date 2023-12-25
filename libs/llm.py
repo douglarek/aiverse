@@ -11,15 +11,15 @@ from libs.config import Settings
 
 
 def model_from_config(config: Settings) -> BaseChatModel:
-    if config.azure_openai_endpoint and config.azure_openai_deployment and config.azure_openai_api_version:
+    if config.azure_openai_endpoint and config.azure_openai_deployment and config.azure_openai_api_key:
         return AzureChatOpenAI(
             azure_deployment=config.azure_openai_deployment,
             api_version=config.azure_openai_api_version,
-            temperature=0.7,
+            temperature=config.temperature,
         )
 
     if config.google_api_key:
-        return ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.7)  # type: ignore
+        return ChatGoogleGenerativeAI(model="gemini-pro", temperature=config.temperature)  # type: ignore
 
     raise ValueError("Only Azure and Google models are supported at this time")
 
