@@ -1,4 +1,3 @@
-import os
 from operator import itemgetter
 
 from langchain.chat_models import AzureChatOpenAI
@@ -8,18 +7,18 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from libs.config import Settings
 
-def model_from_env() -> BaseChatModel:
-    azure_key = os.getenv("AZURE_OPENAI_API_KEY")
-    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
-    azure_deployment = os.getenv("AZURE_OPENAI_DEPLOYMENT")
-    azure_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2023-09-01-preview")
-    google_api_key = os.getenv("GOOGLE_API_KEY")
 
-    if azure_key and azure_endpoint and azure_deployment:
-        return AzureChatOpenAI(azure_deployment=azure_deployment, api_version=azure_api_version, temperature=0.7)
+def model_from_config(config: Settings) -> BaseChatModel:
+    if config.azure_openai_endpoint and config.azure_openai_deployment and config.azure_openai_api_version:
+        return AzureChatOpenAI(
+            azure_deployment=config.azure_openai_deployment,
+            api_version=config.azure_openai_api_version,
+            temperature=0.7,
+        )
 
-    if google_api_key:
+    if config.google_api_key:
         return ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.7)  # type: ignore
 
     raise ValueError("Only Azure and Google models are supported at this time")
@@ -35,9 +34,9 @@ class DiscordChain:
     )
     history = dict[str, ConversationTokenBufferMemory]()
 
-    def __init__(self, history_max_size: int):
-        self.model = model_from_env()
-        self.history_max_size = history_max_size
+    def __init__(self, config: Settings):
+        self.model = model_from_config(config=config)
+        self.history_max_size = config.history_max_size
 
     def get_history(self, user: str) -> ConversationTokenBufferMemory:
         m = self.history.get(

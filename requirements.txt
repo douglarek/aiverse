@@ -6,3 +6,4 @@ openai==1.6.1
 tiktoken==0.5.2
 langchain-google-genai==0.0.5
 transformers==4.36.2
+pydantic_settings==2.1.0

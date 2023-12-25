@@ -1,23 +1,22 @@
-import os
 import re
 
-import discord
 import dotenv
-from discord import app_commands
-
-from llm import DiscordChain
 
 dotenv.load_dotenv()
-DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")
-HISTORY_MAX_SIZE = os.getenv("HISTORY_MAX_SIZE", "2048")
 
+import discord
+from discord import app_commands
+
+from libs.config import Settings
+from libs.llm import DiscordChain
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
-llmChain = DiscordChain(history_max_size=int(HISTORY_MAX_SIZE))
+config = Settings()  # type: ignore
+llmChain = DiscordChain(config=config)
 
 
 @client.event
@@ -44,4 +43,4 @@ async def on_message(message: discord.Message):
             await message.channel.send(response, reference=message)
 
 
-client.run(DISCORD_BOT_TOKEN)
+client.run(config.discord_bot_token)
