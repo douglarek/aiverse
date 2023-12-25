@@ -16,3 +16,19 @@ class Settings(BaseSettings):
     history_max_size: int = 2048
 
     discord_bot_token: str
+
+    @property
+    def is_azure(self) -> bool:
+        return (
+            self.azure_openai_api_key is not None
+            and self.azure_openai_endpoint is not None
+            and self.azure_openai_deployment is not None
+        )
+
+    @property
+    def is_google(self) -> bool:
+        return self.google_api_key is not None
+
+    @property
+    def has_vision(self) -> bool:
+        return self.google_api_key is not None
