@@ -8,6 +8,8 @@ from discord import app_commands
 from llm import DiscordChain
 
 dotenv.load_dotenv()
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")
+HISTORY_MAX_SIZE = os.getenv("HISTORY_MAX_SIZE", "2048")
 
 
 intents = discord.Intents.default()
@@ -15,12 +17,12 @@ intents.message_content = True
 
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
-llmChain = DiscordChain()
+llmChain = DiscordChain(history_max_size=int(HISTORY_MAX_SIZE))
 
 
 @client.event
 async def on_ready():
-    print(f"We have logged in as {client.user}")
+    print(f"We have logged in as {client.user}, {client.user.display_name}")
     await tree.sync()
 
 
@@ -33,8 +35,8 @@ async def on_message(message: discord.Message):
     if client.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel):  # type: ignore
         raw_content = re.compile(r"<[^>]+>").sub("", message.content).lstrip()
         async with message.channel.typing():
-            if "new chat" == raw_content:
-                llmChain.reset_memory(str(message.author.id))
+            if "$clear" == raw_content:
+                llmChain.clear_history(str(message.author.id))
                 await message.channel.send("🤖 Chat history has been reset.", reference=message)
                 return
             await message.add_reaction("💬")
@@ -42,10 +44,4 @@ async def on_message(message: discord.Message):
             await message.channel.send(response, reference=message)
 
 
-@tree.command(name="clear_history", description="Clear GPT4 chat history")  # type: ignore
-async def clear_history(interaction: discord.Interaction):
-    llmChain.reset_memory(str(interaction.user.id))
-    await interaction.response.send_message("🤖 Chat history has been reset.")
-
-
-client.run(os.getenv("DISCORD_BOT_TOKEN", ""))
+client.run(DISCORD_BOT_TOKEN)
