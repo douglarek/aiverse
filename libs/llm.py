@@ -1,9 +1,11 @@
 from operator import itemgetter
 from typing import Dict, List, Union
 
+from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationTokenBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain.tools import DuckDuckGoSearchRun
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -52,7 +54,10 @@ class DiscordChain:
         m = self.history.get(
             user,
             ConversationTokenBufferMemory(
-                llm=self.text_model, return_messages=True, max_token_limit=self.history_max_size
+                llm=self.text_model,
+                return_messages=True,
+                max_token_limit=self.history_max_size,
+                memory_key="chat_history",
             ),
         )
         self.history[user] = m
@@ -71,12 +76,29 @@ class DiscordChain:
             return "❌ Vision model is not available."
 
         memory = self.get_history(user)
-        chain = (
-            RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
-            | self.prompt
-            | self.text_model
+
+        if isinstance(self.text_model, ChatGoogleGenerativeAI):
+            chain = (
+                RunnablePassthrough.assign(
+                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("chat_history")
+                )
+                | self.prompt
+                | self.text_model
+            )
+            response = await chain.ainvoke({"input": message})
+            memory.save_context({"input": message}, {"output": response.content})  # type: ignore
+            return response.content  # type: ignore
+
+        tools = [DuckDuckGoSearchRun()]
+        chain_agent = initialize_agent(
+            tools,
+            self.text_model,
+            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            memory=memory,
+            verbose=True,
+            handle_parsing_errors=True,
         )
 
-        response = await chain.ainvoke({"input": message})
-        memory.save_context({"input": message}, {"output": response.content})  # type: ignore
-        return response.content  # type: ignore
+        response = await chain_agent.ainvoke({"input": message})  # type: ignore
+        memory.save_context({"input": message}, {"output": response["output"]})  # type: ignore
+        return response["output"]  # type: ignore
