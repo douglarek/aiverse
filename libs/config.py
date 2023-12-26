@@ -13,6 +13,11 @@ class Settings(BaseSettings):
 
     google_api_key: str | None = None
 
+    azure_dalle_api_key: str | None = None
+    azure_dalle_endpoint: str | None = None
+    azure_dalle_deployment: str | None = None
+    azure_dalle_api_version: str = "2023-12-01-preview"
+
     history_max_size: int = 2048
 
     discord_bot_token: str
@@ -34,3 +39,11 @@ class Settings(BaseSettings):
     @property
     def has_vision(self) -> bool:
         return self.google_api_key is not None
+
+    @property
+    def has_dalle(self) -> bool:
+        return (
+            self.azure_dalle_api_key is not None
+            and self.azure_dalle_endpoint is not None
+            and self.azure_dalle_deployment is not None
+        )

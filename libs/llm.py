@@ -10,15 +10,17 @@ from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.duckduckgo_search import DuckDuckGoSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
-from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from libs.config import Settings
+from libs.models import AzureDALLELLM
+from libs.tools import DALLEQueryRun
 
 
-def text_model_from_config(config: Settings) -> BaseChatModel:
+def text_model_from_config(config: Settings) -> BaseLanguageModel:
     if config.is_azure:
         return AzureChatOpenAI(
             azure_deployment=config.azure_openai_deployment,
@@ -32,14 +34,26 @@ def text_model_from_config(config: Settings) -> BaseChatModel:
     raise ValueError("Only Azure and Google models are supported at this time")
 
 
-def vison_model_from_config(config: Settings) -> BaseChatModel | None:
+def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
     if config.has_vision:
         return ChatGoogleGenerativeAI(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
 
     return None
 
 
-class DiscordChain:
+def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
+    if config.has_dalle:
+        return AzureDALLELLM(
+            api_version=config.azure_dalle_api_version,
+            api_key=config.azure_dalle_api_key,
+            azure_endpoint=config.azure_dalle_endpoint or "",
+            azure_deployment=config.azure_dalle_deployment,
+        )
+
+    return None
+
+
+class DiscordAgentExecutor:
     prompt = ChatPromptTemplate.from_messages(
         [
             # ("system", "You are a helpful chatbot"),
@@ -52,6 +66,7 @@ class DiscordChain:
     def __init__(self, config: Settings):
         self.text_model = text_model_from_config(config=config)
         self.vision_model = vison_model_from_config(config=config)
+        self.dalle_model = dalle_model_from_config(config=config)
         self.history_max_size = config.history_max_size
 
     def get_history(self, user: str) -> ConversationSummaryBufferMemory:
@@ -101,6 +116,10 @@ class DiscordChain:
             WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),  # type: ignore
             OpenWeatherMapQueryRun(),
         ]
+
+        if self.dalle_model:
+            tools.append(DALLEQueryRun(client=self.dalle_model))
+
         chain_agent = initialize_agent(
             tools,
             self.text_model,

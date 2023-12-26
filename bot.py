@@ -8,7 +8,7 @@ import discord
 from discord import app_commands
 
 from libs.config import Settings
-from libs.llm import DiscordChain
+from libs.llm import DiscordAgentExecutor
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -16,7 +16,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
 config = Settings()  # type: ignore
-llmChain = DiscordChain(config=config)
+llmAgent = DiscordAgentExecutor(config=config)
 
 
 @client.event
@@ -44,15 +44,15 @@ async def on_message(message: discord.Message):
                         if raw_content:
                             cont.append({"type": "text", "text": raw_content})
                         cont.append({"type": "image_url", "image_url": attachment.url})
-                        response = await llmChain.query(str(message.author.id), cont)  # type: ignore
+                        response = await llmAgent.query(str(message.author.id), cont)  # type: ignore
                         await message.channel.send(response, reference=message)
             else:
                 if "$clear" == raw_content:
-                    llmChain.clear_history(str(message.author.id))
+                    llmAgent.clear_history(str(message.author.id))
                     await message.channel.send("🤖 Chat history has been reset.", reference=message)
                     return
                 await message.add_reaction("💬")
-                response = await llmChain.query(str(message.author.id), raw_content)
+                response = await llmAgent.query(str(message.author.id), raw_content)
                 await message.channel.send(response, reference=message)
 
 
