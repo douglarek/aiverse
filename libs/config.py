@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     discord_bot_token: str
 
+    openweathermap_api_key: str | None = None
+
     @property
     def is_azure(self) -> bool:
         return (
