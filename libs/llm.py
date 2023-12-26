@@ -115,9 +115,12 @@ class DiscordAgentExecutor:
                 | self.prompt
                 | self.text_model
             )
-            response = await chain.ainvoke({"input": message})
-            memory.save_context({"input": message}, {"output": response.content})  # type: ignore
-            return response.content  # type: ignore
+            try:
+                response = await chain.ainvoke({"input": message})
+                memory.save_context({"input": message}, {"output": response.content})  # type: ignore
+                return response.content  # type: ignore
+            except Exception as e:  # google ai safety
+                return str(e)
 
         agent_kwargs = {
             "extra_prompt_messages": [MessagesPlaceholder(variable_name="history")],
