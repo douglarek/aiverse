@@ -1,14 +1,14 @@
 from operator import itemgetter
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.tools.ddg_search.tool import DuckDuckGoSearchResults
+from langchain.tools.google_search.tool import GoogleSearchRun
 from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
-from langchain.utilities.duckduckgo_search import DuckDuckGoSearchAPIWrapper
+from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
@@ -29,7 +29,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         )
 
     if config.is_google:
-        return ChatGoogleGenerativeAI(model="gemini-pro", temperature=config.temperature)  # type: ignore
+        return ChatGoogleGenerativeAI(model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True)  # type: ignore
 
     raise ValueError("Only Azure and Google models are supported at this time")
 
@@ -56,7 +56,7 @@ def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
 class DiscordAgentExecutor:
     prompt = ChatPromptTemplate.from_messages(
         [
-            # ("system", "You are a helpful chatbot"),
+            ("system", "You are a helpful chatbot"),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}"),
         ]
@@ -67,6 +67,7 @@ class DiscordAgentExecutor:
         self.text_model = text_model_from_config(config=config)
         self.vision_model = vison_model_from_config(config=config)
         self.dalle_model = dalle_model_from_config(config=config)
+        self.config = config
         self.history_max_size = config.history_max_size
 
     def get_history(self, user: str) -> ConversationSummaryBufferMemory:
@@ -76,7 +77,7 @@ class DiscordAgentExecutor:
                 llm=self.text_model,
                 return_messages=True,
                 max_token_limit=self.history_max_size,
-                memory_key="chat_history",
+                memory_key="history",
             ),
         )
         self.history[user] = m
@@ -96,10 +97,20 @@ class DiscordAgentExecutor:
 
         memory = self.get_history(user)
 
-        if isinstance(self.text_model, ChatGoogleGenerativeAI):
+        tools: List[Any] = []
+        if self.config.enable_google_search:
+            tools.append(GoogleSearchRun(api_wrapper=GoogleSearchAPIWrapper()))  # type: ignore
+        if self.config.enable_wikipedia:
+            tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore
+        if self.config.openweathermap_api_key:
+            tools.append(OpenWeatherMapQueryRun())
+        if self.dalle_model:
+            tools.append(DALLEQueryRun(client=self.dalle_model))
+
+        if isinstance(self.text_model, ChatGoogleGenerativeAI) or len(tools) == 0:
             chain = (
                 RunnablePassthrough.assign(
-                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("chat_history")
+                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
                 )
                 | self.prompt
                 | self.text_model
@@ -108,22 +119,14 @@ class DiscordAgentExecutor:
             memory.save_context({"input": message}, {"output": response.content})  # type: ignore
             return response.content  # type: ignore
 
-        tools = [
-            DuckDuckGoSearchResults(
-                name="duckduckgo_search_results",
-                api_wrapper=DuckDuckGoSearchAPIWrapper(max_results=7, safesearch="off"),
-            ),
-            WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()),  # type: ignore
-            OpenWeatherMapQueryRun(),
-        ]
-
-        if self.dalle_model:
-            tools.append(DALLEQueryRun(client=self.dalle_model))
-
+        agent_kwargs = {
+            "extra_prompt_messages": [MessagesPlaceholder(variable_name="history")],
+        }
         chain_agent = initialize_agent(
             tools,
             self.text_model,
-            agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+            agent=AgentType.OPENAI_FUNCTIONS,
+            agent_kwargs=agent_kwargs,
             memory=memory,
             verbose=True,
             handle_parsing_errors=True,

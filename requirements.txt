@@ -8,6 +8,6 @@ langchain-google-genai==0.0.5
 transformers==4.36.2
 pydantic_settings==2.1.0
 pillow==10.1.0
-duckduckgo-search==4.1.1
 wikipedia==1.4.0
 pyowm==3.3.0
+google-api-python-client==2.111.0

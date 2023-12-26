@@ -24,6 +24,10 @@ class Settings(BaseSettings):
 
     openweathermap_api_key: str | None = None
 
+    google_cse_id: str | None = None
+
+    enable_wikipedia: bool = False
+
     @property
     def is_azure(self) -> bool:
         return (
@@ -47,3 +51,11 @@ class Settings(BaseSettings):
             and self.azure_dalle_endpoint is not None
             and self.azure_dalle_deployment is not None
         )
+
+    @property
+    def enable_google_search(self) -> bool:
+        return self.google_cse_id is not None and self.google_api_key is not None
+
+    @property
+    def enable_openweathermap(self) -> bool:
+        return self.openweathermap_api_key is not None
