@@ -171,9 +171,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             if curr != chunks:
                 chunks = curr
                 await placeholder.edit_text(curr)
-        await placeholder.edit_text(" * *\n\n" + escape(chunks), parse_mode=ParseMode.MARKDOWN_V2)
         if isinstance(raw_message, str):
             llmAgent.save_history(user_id, raw_message, chunks)
+        await placeholder.edit_text(" * *\n\n" + escape(chunks), parse_mode=ParseMode.MARKDOWN_V2)
     except Exception as e:
         if isinstance(e, BadRequest) and e.message.find("Message is not modified") != -1:
             return
