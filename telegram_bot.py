@@ -1,12 +1,13 @@
 import logging
 import re
-import typing
+from typing import Tuple, no_type_check
 
 import dotenv
 
 dotenv.load_dotenv()
 
-from telegram import BotCommand, Update
+
+from telegram import BotCommand, PhotoSize, Update
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import (
@@ -32,13 +33,8 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-from typing import Tuple
-
-from telegram import PhotoSize
-
-
 # Telegram always provides various sizes of single photos.
-@typing.no_type_check
+@no_type_check
 def get_largest_photo_size(photos: Tuple[PhotoSize]) -> PhotoSize:
     largest_photo = photos[0]
     for photo_data in photos:
@@ -149,7 +145,7 @@ def escape(text, flag=0):
 ################################
 
 
-@typing.no_type_check
+@no_type_check
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     raw_message = update.message.text.removeprefix(context.bot.name).lstrip()
     user_id = f"telegram-{update.message.from_user.id}"
@@ -185,7 +181,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await placeholder.edit_text(f"🤖 An error has occurred: {e}")
 
 
-@typing.no_type_check
+@no_type_check
 async def reset_command_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     llmAgent.clear_history(f"telegram-{update.message.from_user.id}")
     await update.message.reply_text("🤖 Chat history has been reset.")
