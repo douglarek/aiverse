@@ -1,8 +1,8 @@
-# GPT-discord
+# LLMBot
 
 ## Introduction
 
-This project is a Discord bot that uses the Discord API and various language models to interact with users. The bot can respond to messages, clear chat history, and more.
+The bot can respond to messages, clear chat history, and more.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ This project is a Discord bot that uses the Discord API and various language mod
     cd <repository_directory>
     ```
 
-2. Create a [`.env`](.env) file in the root directory of the project and add your Discord bot token and other necessary environment variables. You can refer to [`env.example`](command:_github.copilot.openSymbolInFile?%5B%22env.example%22%2C%22env.example%22%5D "env.example") for the required environment variables.
+2. Create a [`.env`](.env) file in the root directory of the project and add your bot token and other necessary environment variables. You can refer to [`env.example`](command:_github.copilot.openSymbolInFile?%5B%22env.example%22%2C%22env.example%22%5D "env.example") for the required environment variables.
 
     ```bash
     cp env.example .env
@@ -34,7 +34,7 @@ This project is a Discord bot that uses the Discord API and various language mod
 
 ## Usage
 
-Once the bot is running, you can interact with it on Discord. Mention the bot in a message or send a direct message to the bot to get a response.
+Once the bot is running, you can interact with it. Mention the bot in a message or send a direct message to the bot to get a response.
 
 ## Commands
 
