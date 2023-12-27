@@ -1,7 +1,6 @@
 from operator import itemgetter
-from typing import Any, Dict, List, Union
+from typing import Any, AsyncIterator, Dict, List, Union
 
-from langchain.agents import AgentType, initialize_agent
 from langchain.chat_models import AzureChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -26,6 +25,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
             azure_deployment=config.azure_openai_deployment,
             api_version=config.azure_openai_api_version,
             temperature=config.temperature,
+            streaming=True,
         )
 
     if config.is_google:
@@ -53,7 +53,7 @@ def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
     return None
 
 
-class DiscordAgentExecutor:
+class LLMAgentExecutor:
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "You are a helpful chatbot"),
@@ -87,13 +87,17 @@ class DiscordAgentExecutor:
         if user in self.history:
             self.history[user].clear()
 
-    async def query(self, user: str, message: Union[str, List[Union[str, Dict]]]) -> str:
+    def save_history(self, user: str, input: str, response: str):
+        self.get_history(user).save_context({"input": input}, {"output": response})
+
+    async def query(self, user: str, message: Union[str, List[Union[str, Dict]]]) -> AsyncIterator[str]:
         if isinstance(message, list):
             if self.vision_model:
                 msg = HumanMessage(content=message)
-                response = await self.vision_model.ainvoke([msg])
-                return response.content  # type: ignore
-            return "❌ Vision model is not available."
+                for s in self.vision_model.stream([msg]):
+                    yield s.content
+                return
+            raise ValueError("Vision model is not enabled")
 
         memory = self.get_history(user)
 
@@ -107,34 +111,11 @@ class DiscordAgentExecutor:
         if self.dalle_model:
             tools.append(DALLEQueryRun(client=self.dalle_model))
 
-        if isinstance(self.text_model, ChatGoogleGenerativeAI) or len(tools) == 0:
-            chain = (
-                RunnablePassthrough.assign(
-                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
-                )
-                | self.prompt
-                | self.text_model
-            )
-            try:
-                response = await chain.ainvoke({"input": message})
-                memory.save_context({"input": message}, {"output": response.content})  # type: ignore
-                return response.content  # type: ignore
-            except Exception as e:  # google ai safety
-                return str(e)
-
-        agent_kwargs = {
-            "extra_prompt_messages": [MessagesPlaceholder(variable_name="history")],
-        }
-        chain_agent = initialize_agent(
-            tools,
-            self.text_model,
-            agent=AgentType.OPENAI_FUNCTIONS,
-            agent_kwargs=agent_kwargs,
-            memory=memory,
-            verbose=True,
-            handle_parsing_errors=True,
+        chain = (
+            RunnablePassthrough.assign(history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"))
+            | self.prompt
+            | self.text_model
         )
-
-        response = await chain_agent.ainvoke({"input": message})  # type: ignore
-        memory.save_context({"input": message}, {"output": response["output"]})  # type: ignore
-        return response["output"]  # type: ignore
+        for c in chain.stream({"input": message}):
+            yield c.content
+        return

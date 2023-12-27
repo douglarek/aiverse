@@ -11,3 +11,4 @@ pillow==10.1.0
 wikipedia==1.4.0
 pyowm==3.3.0
 google-api-python-client==2.111.0
+python-telegram-bot[ext]==20.7

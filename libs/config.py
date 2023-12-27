@@ -20,7 +20,9 @@ class Settings(BaseSettings):
 
     history_max_size: int = 2048
 
-    discord_bot_token: str
+    discord_bot_token: str = ""
+    telegram_bot_token: str = ""
+    telegram_allowed_users: list[str] = []
 
     openweathermap_api_key: str | None = None
 
