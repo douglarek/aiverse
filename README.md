@@ -1,44 +1,54 @@
 # LLMBot
 
-## Introduction
+This project includes a Discord bot and a Telegram bot that interact with users and process their messages.
 
-The bot can respond to messages, clear chat history, and more.
+## Discord Bot
 
-## Prerequisites
+The Discord bot is implemented in the `discord_bot.py` file. It uses the discord.py library to interact with the Discord API. The bot listens for messages and reacts to them based on certain conditions.
 
-- Python 3.11 or higher
-- Docker
-- Docker Compose
+### Setup
 
-## Setup
-
-1. Clone the repository:
-
-    ```bash
-    git clone <repository_url>
-    cd <repository_directory>
+0. Set up a virtual environment (optional, but recommended):
+    ```sh
+    python3 -m venv .venv
+    source .venv/bin/activate
     ```
+1. Create a `.env` file based on the provided `env.example` file.
+2. Fill in the `DISCORD_BOT_TOKEN` with your bot's token.
 
-2. Create a [`.env`](.env) file in the root directory of the project and add your bot token and other necessary environment variables. You can refer to [`env.example`](command:_github.copilot.openSymbolInFile?%5B%22env.example%22%2C%22env.example%22%5D "env.example") for the required environment variables.
+### Running the Bot
 
-    ```bash
-    cp env.example .env
-    # Edit .env with your own values
-    ```
+Run the bot using the following command:
 
-3. Build and run the Docker image:
+```sh
+python discord_bot.py
+```
 
-    ```bash
-    docker-compose up --build -d
-    ```
+The bot will log in and start listening for messages. It will respond to messages that mention it or are sent in a direct message (DM) channel. The bot also provides a `$clear` command to clear the chat history.
 
-## Usage
+## Telegram Bot
 
-Once the bot is running, you can interact with it. Mention the bot in a message or send a direct message to the bot to get a response.
+The Telegram bot is implemented in the `telegram_bot.py` file. It uses the python-telegram-bot library to interact with the Telegram Bot API. The bot listens for messages and reacts to them based on certain conditions.
 
-## Commands
+### Setup
 
-- `$clear`: Clears the chat history.
+1. Create a `.env` file based on the provided `env.example` file.
+2. Fill in the `TELEGRAM_BOT_TOKEN` with your bot's token.
+3. Optionally, fill in the `TELEGRAM_ALLOWED_USERS` with the usernames of users who are allowed to interact with the bot.
+
+### Running the Bot
+
+Run the bot using the following command:
+
+```sh
+python telegram_bot.py
+```
+
+The bot will start listening for messages. It will respond to messages from allowed users and ignore messages from other users. The bot also provides a `/clear` command to clear the chat history.
+
+## Common Features
+
+Both bots use the `LLMAgentExecutor` class from `libs/llm.py` to process user messages and generate responses. They also use the `Settings` class from `libs/config.py` to load configuration settings from the `.env` file.
 
 ## Contributing
 
@@ -52,4 +62,4 @@ Contributions are welcome! Please read the contributing guidelines before making
 
 ## License
 
-This project is licensed under the terms of the Apache-2.0 license.
+This project is licensed under the Apache-2.0 License - see the LICENSE file for details.

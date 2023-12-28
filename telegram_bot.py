@@ -203,7 +203,7 @@ user_filter = filters.User(username=config.telegram_allowed_users) if config.tel
 application = Application.builder().token(config.telegram_bot_token).post_init(app_post_init).build()
 
 # on non command i.e message - echo the message on Telegram
-application.add_handler(CommandHandler("reset", reset_command_handler, filters=user_filter))
+application.add_handler(CommandHandler("clear", reset_command_handler, filters=user_filter))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & user_filter, callback=message_handler))
 
 # Run the bot until the user presses Ctrl-C
