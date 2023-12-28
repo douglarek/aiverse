@@ -11,7 +11,7 @@ from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_core.language_models.llms import BaseLanguageModel
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_mistralai.chat_models import ChatMistralAI
 
@@ -65,7 +65,7 @@ def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
 class LLMAgentExecutor:
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "You are a helpful chatbot"),
+            ("system", "You are a helpful AI assistant."),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}"),
         ]
@@ -124,6 +124,7 @@ class LLMAgentExecutor:
         if (self.config.is_openai or self.config.is_azure) and len(tools) > 0:
             agent_kwargs = {
                 "extra_prompt_messages": [MessagesPlaceholder(variable_name="history")],
+                "system_message": SystemMessage(content="You are a helpful AI assistant."),  # or extra_prompt_messages
             }
             agent_executor = initialize_agent(
                 tools,
