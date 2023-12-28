@@ -1,4 +1,5 @@
 import re
+import traceback
 
 import dotenv
 
@@ -62,6 +63,7 @@ async def on_message(message: discord.Message):
                     llmAgent.save_history(user_id, raw_content, chunks)
                     await message.channel.send(chunks, reference=message)
             except Exception as e:
+                traceback.print_exc()
                 await message.channel.send(f"🤖 {e}", reference=message)
 
 

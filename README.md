@@ -2,6 +2,20 @@
 
 This project includes a Discord bot and a Telegram bot that interact with users and process their messages.
 
+## Supported Models
+
+This project supports several models for processing user messages:
+
+1. OpenAI's model, implemented in the `ChatOpenAI` class.
+2. Azure's model, implemented in the `AzureChatOpenAI` class.
+3. Mistral's model, implemented in the `ChatMistralAI` class.
+4. Google's model, implemented in the `ChatGoogleGenerativeAI` class.
+5. Google's vision model, also implemented in the `ChatGoogleGenerativeAI` class, with the model name "gemini-pro-vision".
+6. Azure's DALL-E model, implemented in the `AzureDALLELLM` class.
+
+The choice and initialization of these models are done in the `text_model_from_config`, `vison_model_from_config`, and `dalle_model_from_config` functions in the `libs/llm.py` file. The specific model used depends on the settings in the `Settings` configuration object.
+
+
 ## Discord Bot
 
 The Discord bot is implemented in the `discord_bot.py` file. It uses the discord.py library to interact with the Discord API. The bot listens for messages and reacts to them based on certain conditions.
