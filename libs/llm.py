@@ -13,11 +13,10 @@ from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_mistralai.chat_models import ChatMistralAI
 
 from libs.config import Settings
-from libs.models import AzureDALLELLM
+from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
 from libs.tools import DALLEQueryRun
 
 
@@ -39,14 +38,14 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         return ChatMistralAI(temperature=config.temperature, model=config.mistral_model)  # type: ignore
 
     if config.is_google:
-        return ChatGoogleGenerativeAI(model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True)  # type: ignore
+        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True)  # type: ignore
 
     raise ValueError("Only Azure and Google models are supported at this time")
 
 
 def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
     if config.has_vision:
-        return ChatGoogleGenerativeAI(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
+        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
 
     return None
 
