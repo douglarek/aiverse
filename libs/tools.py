@@ -23,4 +23,9 @@ class OpenWeatherMapQueryRunEnhanced(OpenWeatherMapQueryRun):
         "A wrapper around OpenWeatherMap API. "
         "Useful for fetching current weather information for a specified location. "
         "Input should be a location string (e.g. London,GB). If it's a Chinese place name, it needs to be converted into the corresponding English place name."
+        "**NOTE**: Make sure to confirm that the user is asking about the weather."
     )
+
+    def _run(self, location: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        """Use the OpenWeatherMap tool."""
+        return self.api_wrapper.run(location)
