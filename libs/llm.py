@@ -149,7 +149,4 @@ class LLMAgentExecutor:
             | self.text_model
         )
         async for c in chain.astream({"input": message}):
-            try:
-                yield c.content
-            except StopIteration:
-                pass
+            yield c.content
