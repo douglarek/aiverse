@@ -1,23 +1,25 @@
 from operator import itemgetter
 from typing import Any, AsyncIterator, Dict, List, Union
 
-from langchain.agents import AgentType, initialize_agent
+from langchain.agents import AgentExecutor
+from langchain.agents.format_scratchpad import format_to_openai_function_messages
+from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools.google_search.tool import GoogleSearchRun
-from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
+from langchain.tools.render import format_tool_to_openai_function
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_core.language_models.llms import BaseLanguageModel
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_mistralai.chat_models import ChatMistralAI
 
 from libs.config import Settings
 from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
-from libs.tools import DALLEQueryRun
+from libs.tools import AzureDallERun, OpenWeatherMapQueryRunEnhanced
 
 
 def text_model_from_config(config: Settings) -> BaseLanguageModel:
@@ -117,24 +119,25 @@ class LLMAgentExecutor:
         if self.config.enable_wikipedia:
             tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore
         if self.config.openweathermap_api_key:
-            tools.append(OpenWeatherMapQueryRun())
+            tools.append(OpenWeatherMapQueryRunEnhanced())
         if self.dalle_model:
-            tools.append(DALLEQueryRun(client=self.dalle_model))
+            tools.append(AzureDallERun(client=self.dalle_model))
 
         if (self.config.is_openai or self.config.is_azure) and len(tools) > 0:
-            agent_kwargs = {
-                "extra_prompt_messages": [MessagesPlaceholder(variable_name="history")],
-                "system_message": SystemMessage(content="You are a helpful AI assistant."),  # or extra_prompt_messages
-            }
-            agent_executor = initialize_agent(
-                tools,
-                self.text_model,
-                agent=AgentType.OPENAI_FUNCTIONS,
-                verbose=True,
-                agent_kwargs=agent_kwargs,
-                memory=memory,
+            openai_function_tools = [format_tool_to_openai_function(t) for t in tools]
+            self.prompt.append(MessagesPlaceholder(variable_name="agent_scratchpad"))
+            # self.prompt.append can't update input_variables, so need this
+            self.prompt.input_variables.append("agent_scratchpad")
+            agent = (
+                RunnablePassthrough.assign(
+                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"),
+                    agent_scratchpad=lambda x: format_to_openai_function_messages(x["intermediate_steps"]),
+                )
+                | self.prompt
+                | self.text_model.bind(functions=openai_function_tools)
+                | OpenAIFunctionsAgentOutputParser()
             )
-            # agent_executor does NOT support streaming, so simulate it here.
+            agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
             async for v in agent_executor.astream({"input": message}):
                 if isinstance(v, dict) and "output" in v:
                     yield v["output"]  # type: ignore

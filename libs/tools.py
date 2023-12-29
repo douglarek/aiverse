@@ -1,11 +1,12 @@
 from typing import Optional
 
+from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.tools import BaseTool
 
 
-class DALLEQueryRun(BaseTool):
+class AzureDallERun(BaseTool):
     """Tool that uses DALL-E to draw a picture."""
 
     client: BaseLanguageModel
@@ -15,3 +16,11 @@ class DALLEQueryRun(BaseTool):
     def _run(self, input: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the DALLEQueryRun tool."""
         return self.client.invoke(input=input)
+
+
+class OpenWeatherMapQueryRunEnhanced(OpenWeatherMapQueryRun):
+    description = (
+        "A wrapper around OpenWeatherMap API. "
+        "Useful for fetching current weather information for a specified location. "
+        "Input should be a location string (e.g. London,GB). If it's a Chinese place name, it needs to be converted into the corresponding English place name."
+    )
