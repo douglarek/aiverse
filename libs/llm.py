@@ -2,13 +2,11 @@ from operator import itemgetter
 from typing import Any, AsyncIterator, Dict, List, Union
 
 from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad import format_to_openai_function_messages
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
+from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
 from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools.google_search.tool import GoogleSearchRun
-from langchain.tools.render import format_tool_to_openai_function
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
@@ -124,21 +122,14 @@ class LLMAgentExecutor:
             tools.append(AzureDallERun(client=self.dalle_model))
 
         if (self.config.is_openai or self.config.is_azure) and len(tools) > 0:
-            openai_function_tools = [format_tool_to_openai_function(t) for t in tools]
             self.prompt.append(MessagesPlaceholder(variable_name="agent_scratchpad"))
             # self.prompt.append can't update input_variables, so need this
             self.prompt.input_variables.append("agent_scratchpad")
-            agent = (
-                RunnablePassthrough.assign(
-                    history=RunnableLambda(memory.load_memory_variables) | itemgetter("history"),
-                    agent_scratchpad=lambda x: format_to_openai_function_messages(x["intermediate_steps"]),
-                )
-                | self.prompt
-                | self.text_model.bind(functions=openai_function_tools)
-                | OpenAIFunctionsAgentOutputParser()
-            )
+            agent = create_openai_functions_agent(self.text_model, tools, self.prompt)
             agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
-            async for v in agent_executor.astream({"input": message}):
+            async for v in agent_executor.astream(
+                {"input": message, "history": memory.load_memory_variables({})[memory.memory_key]}
+            ):
                 if isinstance(v, dict) and "output" in v:
                     yield v["output"]  # type: ignore
             return
