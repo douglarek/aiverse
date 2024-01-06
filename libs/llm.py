@@ -3,17 +3,18 @@ from typing import Any, AsyncIterator, Dict, List, Union
 
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
-from langchain.chat_models import AzureChatOpenAI, ChatOpenAI
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools.google_search.tool import GoogleSearchRun
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
+from langchain_community.chat_models import AzureChatOpenAI
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_mistralai.chat_models import ChatMistralAI
+from langchain_openai import ChatOpenAI
 
 from libs.config import Settings
 from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
