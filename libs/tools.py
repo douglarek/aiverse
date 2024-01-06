@@ -37,12 +37,20 @@ class TwitterTranslatorRun(BaseTool):
     """Tool that translate a tweet url to Simplified Chinese text."""
 
     name: str = "Twitter-Translator"
-    description: str = "Useful for when you need to get a tweet content with a url and translate it to authentic Simplified Chinese. Input must be a tweet url like this: `https://fxtwitter.com/sama/status/1743385732147032262`."
+    description: str = "Useful for when you need to get a tweet content with a url and translate it to authentic Simplified Chinese. Input must be a tweet url starts with `https://fxtwitter|twitter|x.com/`."
 
     def _run(self, url: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the TwitterTranslatorRun tool."""
-        if not url.startswith("https://fxtwitter.com/"):
-            return "Invalid url. Please make sure the url starts with `https://fxtwitter.com/`."
+        if (
+            not url.startswith("https://fxtwitter.com/")
+            and not url.startswith("https://x.com/")
+            and not url.startswith("https://twitter.com/")
+        ):
+            return "Invalid twitter url."
+
+        url = url.replace("https://twitter.com/", "https://fxtwitter.com/").replace(
+            "https://x.com/", "https://fxtwitter.com/"
+        )
 
         r = httpx.get(url=url)
         if r.status_code != 200:
