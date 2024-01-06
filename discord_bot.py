@@ -58,6 +58,12 @@ async def on_message(message: discord.Message):
                         await message.channel.send("🤖 Chat history has been reset.", reference=message)
                         return
                     await message.add_reaction("💬")
+
+                    if (not raw_content) and message.reference and message.reference.message_id:
+                        origin = await message.channel.fetch_message(message.reference.message_id)
+                        if origin and origin.content:
+                            raw_content = origin.content
+
                     response = llmAgent.query(user_id, raw_content)
                     chunks = "".join([r async for r in response])
                     llmAgent.save_history(user_id, raw_content, chunks)

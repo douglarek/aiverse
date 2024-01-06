@@ -18,7 +18,11 @@ from langchain_openai import ChatOpenAI
 
 from libs.config import Settings
 from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
-from libs.tools import AzureDallERun, OpenWeatherMapQueryRunEnhanced
+from libs.tools import (
+    AzureDallERun,
+    OpenWeatherMapQueryRunEnhanced,
+    TwitterTranslatorRun,
+)
 
 
 def text_model_from_config(config: Settings) -> BaseLanguageModel:
@@ -121,6 +125,8 @@ class LLMAgentExecutor:
             tools.append(OpenWeatherMapQueryRunEnhanced())
         if self.dalle_model:
             tools.append(AzureDallERun(client=self.dalle_model))
+        if self.config.enable_twitter_translator:
+            tools.append(TwitterTranslatorRun())
 
         if (self.config.is_openai or self.config.is_azure) and len(tools) > 0:
             self.prompt.append(MessagesPlaceholder(variable_name="agent_scratchpad"))

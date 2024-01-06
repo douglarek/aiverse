@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     enable_wikipedia: bool = False
 
+    enable_twitter_translator: bool = False
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None and self.openai_model_name is not None

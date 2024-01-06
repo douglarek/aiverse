@@ -1,5 +1,7 @@
 from typing import Optional
 
+import httpx
+from bs4 import BeautifulSoup
 from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.language_models.llms import BaseLanguageModel
@@ -29,3 +31,30 @@ class OpenWeatherMapQueryRunEnhanced(OpenWeatherMapQueryRun):
     def _run(self, location: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the OpenWeatherMap tool."""
         return self.api_wrapper.run(location)
+
+
+class TwitterTranslatorRun(BaseTool):
+    """Tool that translate a tweet url to Simplified Chinese text."""
+
+    name: str = "Twitter-Translator"
+    description: str = "Useful for when you need to get a tweet content with a url and translate it to authentic Simplified Chinese. Input must be a tweet url like this: `https://fxtwitter.com/sama/status/1743385732147032262`."
+
+    def _run(self, url: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        """Use the TwitterTranslatorRun tool."""
+        if not url.startswith("https://fxtwitter.com/"):
+            return "Invalid url. Please make sure the url starts with `https://fxtwitter.com/`."
+
+        r = httpx.get(url=url)
+        if r.status_code != 200:
+            return f"Error: {r.status_code}, {r.text}"
+
+        soup = BeautifulSoup(r.text, features="html.parser")
+        title = soup.find("meta", property="og:title")
+        desc = soup.find("meta", property="og:description")
+        text = ""
+        if title:
+            text += title.get("content", "") + "\n"  # type: ignore
+        if desc:
+            text += desc.get("content", "") + "\n"  # type: ignore
+
+        return text
