@@ -31,8 +31,9 @@ async def on_message(message: discord.Message):
     if message.author == client.user:  # ignore this bot
         return
 
-    # @ or dm
-    if client.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel):  # type: ignore
+    # @ or dm or role mentioned
+    role_mentioned = message.guild and [role for role in message.role_mentions if role in message.guild.me.roles]
+    if client.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel) or role_mentioned:  # type: ignore
         raw_content = re.compile(r"<[^>]+>").sub("", message.content).lstrip()
         user_id = f"discord-{message.author.id}"
         async with message.channel.typing():
