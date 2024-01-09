@@ -28,7 +28,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message: discord.Message):
-    if message.author == client.user:  # ignore this bot
+    if message.author == client.user or message.mention_everyone:  # ignore this bot and disable @everyone
         return
 
     # @ or dm or role mentioned
