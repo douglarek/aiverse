@@ -1,10 +1,6 @@
 import logging
 import re
 
-import dotenv
-
-dotenv.load_dotenv()
-
 import discord
 from discord import app_commands
 
@@ -78,4 +74,5 @@ async def on_message(message: discord.Message):
                 await message.channel.send(f"🤖 {e}", reference=message)
 
 
-client.run(config.discord_bot_token)
+def start():
+    client.run(config.discord_bot_token)

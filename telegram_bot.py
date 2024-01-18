@@ -2,11 +2,6 @@ import logging
 import re
 from typing import Tuple, no_type_check
 
-import dotenv
-
-dotenv.load_dotenv()
-
-
 from telegram import BotCommand, PhotoSize, Update
 from telegram.constants import ParseMode
 from telegram.error import BadRequest
@@ -206,5 +201,7 @@ application = Application.builder().token(config.telegram_bot_token).post_init(a
 application.add_handler(CommandHandler("clear", reset_command_handler, filters=user_filter))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & user_filter, callback=message_handler))
 
+
 # Run the bot until the user presses Ctrl-C
-application.run_polling(allowed_updates=Update.ALL_TYPES)
+def start():
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
