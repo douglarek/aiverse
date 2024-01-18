@@ -1,5 +1,5 @@
+import logging
 import re
-import traceback
 
 import dotenv
 
@@ -10,6 +10,10 @@ from discord import app_commands
 
 from libs.config import Settings
 from libs.llm import LLMAgentExecutor
+
+discord.utils.setup_logging(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,7 +26,7 @@ llmAgent = LLMAgentExecutor(config=config)
 
 @client.event
 async def on_ready():
-    print(f"We have logged in as {client.user}, {client.user.display_name}")
+    logger.info(f"We have logged in as {client.user}, {client.user.display_name}")
     await tree.sync()
 
 
@@ -70,7 +74,7 @@ async def on_message(message: discord.Message):
                     llmAgent.save_history(user_id, raw_content, chunks)
                     await message.channel.send(chunks, reference=message)
             except Exception as e:
-                traceback.print_exc()
+                logger.error(f"Error: {e}")
                 await message.channel.send(f"🤖 {e}", reference=message)
 
 

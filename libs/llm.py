@@ -1,5 +1,6 @@
 from operator import itemgetter
 from typing import Any, AsyncIterator, Dict, List, Union
+from venv import logger
 
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
@@ -105,6 +106,7 @@ class LLMAgentExecutor:
         self.get_history(user).save_context({"input": input}, {"output": response})
 
     async def query(self, user: str, message: Union[str, List[Union[str, Dict]]]) -> AsyncIterator[str]:
+        logger.info(f"Querying {user} with {message}")
         if isinstance(message, list):
             if self.vision_model:
                 msg = HumanMessage(content=message)
