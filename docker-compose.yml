@@ -1,7 +1,15 @@
 version: "3"
 
 services:
-  gpt-discord-bot:
+  llmbot-tg:
+    command: python telegram_bot.py
+    env_file:
+      - .env
+    restart: always
+    build:
+      context: "."
+  llmbot-discord:
+    command: python discord_bot.py
     env_file:
       - .env
     restart: always
