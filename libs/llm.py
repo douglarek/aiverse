@@ -4,7 +4,7 @@ from venv import logger
 
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
-from langchain.memory import ConversationSummaryBufferMemory
+from langchain.memory import ConversationTokenBufferMemory
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.tools.google_search.tool import GoogleSearchRun
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
@@ -75,7 +75,7 @@ class LLMAgentExecutor:
             ("human", "{input}"),
         ]
     )
-    history = dict[str, ConversationSummaryBufferMemory]()
+    history = dict[str, ConversationTokenBufferMemory]()
 
     def __init__(self, config: Settings):
         self.text_model = text_model_from_config(config=config)
@@ -84,10 +84,10 @@ class LLMAgentExecutor:
         self.config = config
         self.history_max_size = config.history_max_size
 
-    def get_history(self, user: str) -> ConversationSummaryBufferMemory:
+    def get_history(self, user: str) -> ConversationTokenBufferMemory:
         m = self.history.get(
             user,
-            ConversationSummaryBufferMemory(
+            ConversationTokenBufferMemory(
                 llm=self.text_model,
                 return_messages=True,
                 max_token_limit=self.history_max_size,

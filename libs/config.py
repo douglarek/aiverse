@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     mistral_api_key: str | None = None
     mistral_model: str = "mistral-small"
 
-    history_max_size: int = 2048
+    history_max_size: int = 2000
 
     discord_bot_token: str = ""
     telegram_bot_token: str = ""
