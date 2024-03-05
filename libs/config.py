@@ -41,6 +41,9 @@ class Settings(BaseSettings):
 
     enable_twitter_translator: bool = False
 
+    groq_api_key: str | None = None
+    groq_model: str = "mixtral-8x7b-32768"
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None and self.openai_model_name is not None
@@ -80,3 +83,7 @@ class Settings(BaseSettings):
     @property
     def enable_openweathermap(self) -> bool:
         return self.openweathermap_api_key is not None
+
+    @property
+    def is_groq(self) -> bool:
+        return self.groq_api_key is not None

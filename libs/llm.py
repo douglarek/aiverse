@@ -13,6 +13,7 @@ from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_groq.chat_models import ChatGroq
 from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
 
@@ -44,6 +45,9 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_google:
         return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True)  # type: ignore
+
+    if config.is_groq:
+        return ChatGroq(temperature=0, model=config.groq_model)
 
     raise ValueError("Only Azure and Google models are supported at this time")
 

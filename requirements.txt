@@ -1,6 +1,6 @@
 discord.py==2.3.2
 python-dotenv==1.0.0
-langchain==0.1.1
+langchain==0.1.10
 langsmith
 langchain_openai
 tiktoken==0.5.2
@@ -14,3 +14,4 @@ google-api-python-client==2.111.0
 python-telegram-bot[ext]==20.7
 langchain_mistralai
 setuptools
+langchain-groq
