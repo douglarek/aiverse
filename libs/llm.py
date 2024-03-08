@@ -10,6 +10,7 @@ from langchain.tools.google_search.tool import GoogleSearchRun
 from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
+from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -49,6 +50,9 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_groq:
         return ChatGroq(temperature=0, model=config.groq_model)
+
+    if config.is_anthropic:
+        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
     raise ValueError("Only Azure and Google models are supported at this time")
 

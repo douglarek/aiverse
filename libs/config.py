@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     groq_api_key: str | None = None
     groq_model: str = "mixtral-8x7b-32768"
 
+    anthropic_api_key: str | None = None
+    claude_model: str = "claude-3-opus-20240229"
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None and self.openai_model_name is not None
@@ -63,6 +66,10 @@ class Settings(BaseSettings):
     @property
     def is_google(self) -> bool:
         return self.google_api_key is not None
+
+    @property
+    def is_anthropic(self) -> bool:
+        return self.anthropic_api_key is not None
 
     @property
     def has_vision(self) -> bool:
