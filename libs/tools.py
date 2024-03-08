@@ -2,10 +2,31 @@ from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
 from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
+from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.tools import BaseTool
+
+
+class DallEAPIWrapperRun(BaseTool):
+    """Tool that uses DALL-E to draw a picture."""
+
+    client: BaseLanguageModel
+    name = "Dall-E-Image-Generator"
+    description = "A wrapper around OpenAI DALL-E API. Useful for when you need to generate images from a text description. input should be an image description. only a azure s3 url should be returned."
+    return_directly = True
+
+    prompt = PromptTemplate(
+        input_variables=["image_desc"],
+        template="Generate a detailed prompt to generate an image based on the following description: {image_desc}.",
+    )
+
+    def _run(self, input: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
+        """Use DallEAPIWrapperRun tool."""
+        return DallEAPIWrapper(model="dall-e-3").run(LLMChain(llm=self.client, prompt=self.prompt).run(input))  # type: ignore
 
 
 class AzureDallERun(BaseTool):
@@ -13,7 +34,9 @@ class AzureDallERun(BaseTool):
 
     client: BaseLanguageModel
     name: str = "Dall-E-Image-Generator"
-    description: str = "A wrapper around Azure OpenAI DALL-E API. Useful for when you need to generate images from a text description. Input should be an image description."
+    description: str = (
+        "A wrapper around Azure OpenAI DALL-E API. Useful for when you need to generate images from a text description. Input should be an image description."
+    )
 
     def _run(self, input: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the DALLEQueryRun tool."""
@@ -37,7 +60,9 @@ class TwitterTranslatorRun(BaseTool):
     """Tool that translate a tweet url to Simplified Chinese text."""
 
     name: str = "Twitter-Translator"
-    description: str = "Useful for when you need to get a tweet content with a url and translate it to authentic Simplified Chinese. Input must be a tweet url starts with `https://fxtwitter|twitter|x.com/`."
+    description: str = (
+        "Useful for when you need to get a tweet content with a url and translate it to authentic Simplified Chinese. Input must be a tweet url starts with `https://fxtwitter|twitter|x.com/`."
+    )
 
     def _run(self, url: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use the TwitterTranslatorRun tool."""

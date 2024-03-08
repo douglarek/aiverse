@@ -69,7 +69,7 @@ class Settings(BaseSettings):
         return self.google_api_key is not None
 
     @property
-    def has_dalle(self) -> bool:
+    def has_azure_dalle(self) -> bool:
         return (
             self.azure_dalle_api_key is not None
             and self.azure_dalle_endpoint is not None

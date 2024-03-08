@@ -15,12 +15,13 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_groq.chat_models import ChatGroq
 from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI, OpenAI
 
 from libs.config import Settings
 from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
 from libs.tools import (
     AzureDallERun,
+    DallEAPIWrapperRun,
     OpenWeatherMapQueryRunEnhanced,
     TwitterTranslatorRun,
 )
@@ -60,13 +61,15 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
 
 
 def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
-    if config.has_dalle:
+    if config.has_azure_dalle:
         return AzureDALLELLM(
             api_version=config.azure_dalle_api_version,
             api_key=config.azure_dalle_api_key,
             azure_endpoint=config.azure_dalle_endpoint or "",
             azure_deployment=config.azure_dalle_deployment,
         )
+    if config.is_openai:
+        return OpenAI(temperature=0.9)
 
     return None
 
@@ -128,8 +131,10 @@ class LLMAgentExecutor:
             tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore
         if self.config.openweathermap_api_key:
             tools.append(OpenWeatherMapQueryRunEnhanced())
-        if self.dalle_model:
+        if self.dalle_model and isinstance(self.dalle_model, AzureDALLELLM):
             tools.append(AzureDallERun(client=self.dalle_model))
+        if self.dalle_model and isinstance(self.dalle_model, OpenAI):
+            tools.append(DallEAPIWrapperRun(client=self.dalle_model))  # type: ignore
         if self.config.enable_twitter_translator:
             tools.append(TwitterTranslatorRun())
 
