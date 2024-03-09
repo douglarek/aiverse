@@ -1,7 +1,9 @@
+import base64
 from operator import itemgetter
 from typing import Any, AsyncIterator, Dict, List, Union
 from venv import logger
 
+import httpx
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
 from langchain.memory import ConversationTokenBufferMemory
@@ -58,8 +60,11 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
 
 def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
-    if config.has_vision:
+    if config.is_google:
         return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
+
+    if config.is_anthropic:
+        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
     return None
 
@@ -120,6 +125,11 @@ class LLMAgentExecutor:
         logger.info(f"Querying {user} with {message}")
         if isinstance(message, list):
             if self.vision_model:
+                if isinstance(self.vision_model, ChatAnthropic):
+                    async with httpx.AsyncClient() as client:
+                        r = await client.get(message[1].get("image_url"))  # type: ignore
+                        img_base64 = base64.b64encode(r.content).decode("utf-8")
+                        message[1]["image_url"] = {"url": f"data:image/png;base64,{img_base64}"}  # type: ignore
                 msg = HumanMessage(content=message)
                 async for s in self.vision_model.astream([msg]):
                     yield s.content
