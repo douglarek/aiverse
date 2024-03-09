@@ -60,6 +60,9 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
 
 def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
+    if config.is_openai:
+        return ChatOpenAI(model="gpt-4-vision-preview")
+
     if config.is_google:
         return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
 
@@ -130,6 +133,8 @@ class LLMAgentExecutor:
                         r = await client.get(message[1].get("image_url"))  # type: ignore
                         img_base64 = base64.b64encode(r.content).decode("utf-8")
                         message[1]["image_url"] = {"url": f"data:image/png;base64,{img_base64}"}  # type: ignore
+                elif isinstance(self.vision_model, ChatOpenAI):
+                    message[1]["image_url"] = {"url": message[1].get("image_url")}  # type: ignore
                 msg = HumanMessage(content=message)
                 async for s in self.vision_model.astream([msg]):
                     yield s.content
