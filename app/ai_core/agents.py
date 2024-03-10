@@ -13,6 +13,7 @@ from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_anthropic import ChatAnthropic
+from langchain_community.chat_models.tongyi import ChatTongyi
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -47,6 +48,9 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
+
+    if config.is_dashscope:
+        return ChatTongyi(model=config.dashscope_model)  # type: ignore
 
     raise ValueError("Unknown model type.")
 
@@ -158,6 +162,10 @@ class LLMAgentExecutor:
             | self.prompt
             | self.text_model
         )
+        if isinstance(self.text_model, ChatTongyi):  # https://github.com/langchain-ai/langchain/pull/16605
+            res = await chain.ainvoke({"input": message})
+            yield res.content
+            return
         async for c in chain.astream({"input": message}):
             try:
                 yield c.content

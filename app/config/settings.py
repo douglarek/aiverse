@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     claude_model: str = "claude-3-opus-20240229"
 
+    dashscope_api_key: str | None = None
+    dashscope_model: str = "qwen-turbo"
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None
@@ -52,6 +55,10 @@ class Settings(BaseSettings):
     @property
     def is_anthropic(self) -> bool:
         return self.anthropic_api_key is not None
+
+    @property
+    def is_dashscope(self) -> bool:
+        return self.dashscope_api_key is not None
 
     @property
     def enable_google_search(self) -> bool:

@@ -17,3 +17,4 @@ setuptools
 langchain-groq
 langchain-anthropic
 types-beautifulsoup4
+dashscope==1.14.1
