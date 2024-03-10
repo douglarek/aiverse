@@ -47,7 +47,9 @@ class AzureDALLELLM(LLM):
 
 
 class ChatGoogleGenerativeAIWithoutSafety(ChatGoogleGenerativeAI):
-    safety_level: str | None = "BLOCK_NONE"  # values: BLOCK_NONE, BLOCK_ONLY_HIGH, BLOCK_MEDIUM_AND_ABOVE, BLOCK_LOW_AND_ABOVE, HARM_BLOCK_THRESHOLD_UNSPECIFIED
+    safety_level: str | None = (
+        "BLOCK_NONE"  # values: BLOCK_NONE, BLOCK_ONLY_HIGH, BLOCK_MEDIUM_AND_ABOVE, BLOCK_LOW_AND_ABOVE, HARM_BLOCK_THRESHOLD_UNSPECIFIED
+    )
     safety_settings: safety_types.SafetySettingOptions | None
 
     def _prepare_params(self, stop: Optional[List[str]], **kwargs: Any) -> Dict[str, Any]:

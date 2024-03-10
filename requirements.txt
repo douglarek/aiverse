@@ -1,4 +1,4 @@
-discord.py==2.3.2
+nextcord[voice]==2.6.0
 python-dotenv==1.0.0
 langchain==0.1.11
 langsmith
@@ -16,3 +16,4 @@ langchain_mistralai
 setuptools
 langchain-groq
 langchain-anthropic
+types-beautifulsoup4

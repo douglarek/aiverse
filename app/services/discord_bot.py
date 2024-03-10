@@ -1,39 +1,40 @@
 import logging
 import re
 
-import discord
-from discord import app_commands
+import nextcord
+from nextcord.ext import commands
 
-from libs.config import Settings
-from libs.llm import LLMAgentExecutor
+from app.ai_core.agents import LLMAgentExecutor
+from app.config.settings import Settings
 
-discord.utils.setup_logging(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(client)
 config = Settings()  # type: ignore
 llmAgent = LLMAgentExecutor(config=config)
 
 
-@client.event
+class Bot(commands.Bot):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+intents = nextcord.Intents.default()
+intents.message_content = True
+bot = Bot(intents=intents)
+
+
+@bot.event
 async def on_ready():
-    logger.info(f"We have logged in as {client.user}, {client.user.display_name}")
-    await tree.sync()
+    logger.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
 
-@client.event
-async def on_message(message: discord.Message):
-    if message.author == client.user or message.mention_everyone:  # ignore this bot and disable @everyone
+@bot.event
+async def on_message(message: nextcord.Message):
+    if message.author == bot.user or message.mention_everyone:  # ignore this bot and disable @everyone
         return
 
     # @ or dm or role mentioned
     role_mentioned = message.guild and [role for role in message.role_mentions if role in message.guild.me.roles]
-    if client.user.mentioned_in(message) or isinstance(message.channel, discord.DMChannel) or role_mentioned:  # type: ignore
+    if bot.user.mentioned_in(message) or isinstance(message.channel, nextcord.DMChannel) or role_mentioned:  # type: ignore
         raw_content = re.compile(r"<[^>]+>").sub("", message.content).lstrip()
         user_id = f"discord-{message.author.id}"
         async with message.channel.typing():
@@ -75,4 +76,4 @@ async def on_message(message: discord.Message):
 
 
 def start():
-    client.run(config.discord_bot_token)
+    bot.run(config.discord_bot_token)

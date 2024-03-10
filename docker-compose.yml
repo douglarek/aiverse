@@ -1,15 +1,8 @@
 version: "3"
 
 services:
-  llmbot-tg:
-    command: python telegram_bot.py
-    env_file:
-      - .env
-    restart: always
-    build:
-      context: "."
-  llmbot-discord:
-    command: python discord_bot.py
+  app:
+    command: python main.py
     env_file:
       - .env
     restart: always

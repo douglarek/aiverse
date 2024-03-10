@@ -6,11 +6,6 @@ class Settings(BaseSettings):
 
     temperature: float = 0.7
 
-    azure_openai_api_key: str | None = None
-    azure_openai_endpoint: str | None = None
-    azure_openai_deployment: str | None = None
-    azure_openai_api_version: str = "2023-12-01-preview"
-
     google_api_key: str | None = None
 
     openai_log: str = "info"
@@ -18,11 +13,6 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     openai_api_base: str | None = None
     openai_model_name: str = "gpt-3.5-turbo"
-
-    azure_dalle_api_key: str | None = None
-    azure_dalle_endpoint: str | None = None
-    azure_dalle_deployment: str | None = None
-    azure_dalle_api_version: str = "2023-12-01-preview"
 
     mistral_api_key: str | None = None
     mistral_model: str = "mistral-small"
@@ -49,15 +39,7 @@ class Settings(BaseSettings):
 
     @property
     def is_openai(self) -> bool:
-        return self.openai_api_key is not None and self.openai_model_name is not None
-
-    @property
-    def is_azure(self) -> bool:
-        return (
-            self.azure_openai_api_key is not None
-            and self.azure_openai_endpoint is not None
-            and self.azure_openai_deployment is not None
-        )
+        return self.openai_api_key is not None
 
     @property
     def is_mistral(self) -> bool:
@@ -70,14 +52,6 @@ class Settings(BaseSettings):
     @property
     def is_anthropic(self) -> bool:
         return self.anthropic_api_key is not None
-
-    @property
-    def has_azure_dalle(self) -> bool:
-        return (
-            self.azure_dalle_api_key is not None
-            and self.azure_dalle_endpoint is not None
-            and self.azure_dalle_deployment is not None
-        )
 
     @property
     def enable_google_search(self) -> bool:

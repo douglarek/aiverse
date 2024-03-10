@@ -18,29 +18,21 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_groq.chat_models import ChatGroq
 from langchain_mistralai.chat_models import ChatMistralAI
-from langchain_openai import AzureChatOpenAI, ChatOpenAI, OpenAI
+from langchain_openai import ChatOpenAI, OpenAI
 
-from libs.config import Settings
-from libs.models import AzureDALLELLM, ChatGoogleGenerativeAIWithoutSafety
-from libs.tools import (
-    AzureDallERun,
+from app.ai_core.models import ChatGoogleGenerativeAIWithoutSafety
+from app.ai_core.tools import (
     DallEAPIWrapperRun,
     OpenWeatherMapQueryRunEnhanced,
     TwitterTranslatorRun,
 )
+from app.config.settings import Settings
 
 
 def text_model_from_config(config: Settings) -> BaseLanguageModel:
     if config.is_openai:
         return ChatOpenAI(
             model=config.openai_model_name,
-            temperature=config.temperature,
-        )
-
-    if config.is_azure:
-        return AzureChatOpenAI(
-            azure_deployment=config.azure_openai_deployment,
-            api_version=config.azure_openai_api_version,
             temperature=config.temperature,
         )
 
@@ -56,7 +48,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
-    raise ValueError("Only Azure and Google models are supported at this time")
+    raise ValueError("Unknown model type.")
 
 
 def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
@@ -73,15 +65,8 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
 
 
 def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
-    if config.has_azure_dalle:
-        return AzureDALLELLM(
-            api_version=config.azure_dalle_api_version,
-            api_key=config.azure_dalle_api_key,
-            azure_endpoint=config.azure_dalle_endpoint or "",
-            azure_deployment=config.azure_dalle_deployment,
-        )
     if config.is_openai:
-        return OpenAI(temperature=0.9)
+        return OpenAI(temperature=config.temperature)
 
     return None
 
@@ -150,14 +135,12 @@ class LLMAgentExecutor:
             tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore
         if self.config.openweathermap_api_key:
             tools.append(OpenWeatherMapQueryRunEnhanced())
-        if self.dalle_model and isinstance(self.dalle_model, AzureDALLELLM):
-            tools.append(AzureDallERun(client=self.dalle_model))
         if self.dalle_model and isinstance(self.dalle_model, OpenAI):
             tools.append(DallEAPIWrapperRun(client=self.dalle_model))  # type: ignore
         if self.config.enable_twitter_translator:
             tools.append(TwitterTranslatorRun())
 
-        if (self.config.is_openai or self.config.is_azure) and len(tools) > 0:
+        if self.config.is_openai and len(tools) > 0:
             self.prompt.append(MessagesPlaceholder(variable_name="agent_scratchpad"))
             # self.prompt.append can't update input_variables, so need this
             self.prompt.input_variables.append("agent_scratchpad")
