@@ -6,10 +6,12 @@ from nextcord.ext import commands
 
 from app.ai_core.agents import LLMAgentExecutor
 from app.config.settings import Settings
+from app.services.http_api import PasteService
 
 logger = logging.getLogger(__name__)
 config = Settings()  # type: ignore
 llmAgent = LLMAgentExecutor(config=config)
+paste_service = PasteService()
 
 
 class Bot(commands.Bot):
@@ -52,8 +54,6 @@ async def on_message(message: nextcord.Message):
                             cont.append({"type": "image_url", "image_url": attachment.url})
                             response = llmAgent.query(user_id, cont)  # type: ignore
                             chunks = "".join([r async for r in response])
-                            llmAgent.save_history(user_id, raw_content, chunks)
-                            await message.channel.send(chunks, reference=message)
                 else:
                     if "$clear" == raw_content:
                         llmAgent.clear_history(str(message.author.id))
@@ -68,8 +68,13 @@ async def on_message(message: nextcord.Message):
 
                     response = llmAgent.query(user_id, raw_content)
                     chunks = "".join([r async for r in response])
-                    llmAgent.save_history(user_id, raw_content, chunks)
-                    await message.channel.send(chunks, reference=message)
+                llmAgent.save_history(user_id, raw_content, chunks)
+                if len(chunks) > 2000:
+                    d = await paste_service.create_paste(data=chunks)
+                    suffix = f" [...]({d})"
+                    await message.channel.send(chunks[: 2000 - len(suffix)] + suffix, reference=message)
+                    return
+                await message.channel.send(chunks, reference=message)
             except Exception as e:
                 logger.error(f"Error: {e}")
                 await message.channel.send(f"🤖 {e}", reference=message)
