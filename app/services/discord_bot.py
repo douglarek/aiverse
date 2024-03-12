@@ -71,7 +71,7 @@ async def on_message(message: nextcord.Message):
                 llmAgent.save_history(user_id, raw_content, chunks)
                 if len(chunks) > 2000:
                     d = await paste_service.create_paste(data=chunks)
-                    suffix = f" [...]({d})"
+                    suffix = f" [:link: click here to see more text ...]({d})"
                     await message.channel.send(chunks[: 2000 - len(suffix)] + suffix, reference=message)
                     return
                 await message.channel.send(chunks, reference=message)
