@@ -38,10 +38,12 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         )
 
     if config.is_mistral:
-        return ChatMistralAI(temperature=config.temperature, model=config.mistral_model)  # type: ignore
+        return ChatMistralAI(temperature=config.temperature, model=config.mistral_model)
 
     if config.is_google:
-        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True)  # type: ignore
+        return ChatGoogleGenerativeAIWithoutSafety(
+            model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True  # type: ignore[arg-type,call-arg]
+        )
 
     if config.is_groq:
         return ChatGroq(temperature=0, model=config.groq_model)
@@ -50,8 +52,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
     if config.is_dashscope:
-        return ChatTongyi(model=config.dashscope_model)  # type: ignore
-
+        return ChatTongyi(model=config.dashscope_model)  # type: ignore[call-arg]
     raise ValueError("Unknown model type.")
 
 
@@ -60,8 +61,7 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
         return ChatOpenAI(model="gpt-4-vision-preview")
 
     if config.is_google:
-        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore
-
+        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore[call-arg]
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
@@ -119,11 +119,11 @@ class LLMAgentExecutor:
             if self.vision_model:
                 if isinstance(self.vision_model, ChatAnthropic):
                     async with httpx.AsyncClient() as client:
-                        r = await client.get(message[1].get("image_url"))  # type: ignore
+                        r = await client.get(message[1].get("image_url"))  # type: ignore[arg-type,union-attr]
                         img_base64 = base64.b64encode(r.content).decode("utf-8")
-                        message[1]["image_url"] = {"url": f"data:image/png;base64,{img_base64}"}  # type: ignore
+                        message[1]["image_url"] = {"url": f"data:image/png;base64,{img_base64}"}  # type: ignore[index]
                 elif isinstance(self.vision_model, ChatOpenAI):
-                    message[1]["image_url"] = {"url": message[1].get("image_url")}  # type: ignore
+                    message[1]["image_url"] = {"url": message[1].get("image_url")}  # type: ignore[index,union-attr]
                 msg = HumanMessage(content=message)
                 async for s in self.vision_model.astream([msg]):
                     yield s.content
@@ -134,13 +134,13 @@ class LLMAgentExecutor:
 
         tools: List[Any] = []
         if self.config.enable_google_search:
-            tools.append(GoogleSearchRun(api_wrapper=GoogleSearchAPIWrapper()))  # type: ignore
+            tools.append(GoogleSearchRun(api_wrapper=GoogleSearchAPIWrapper()))  # type: ignore[call-arg]
         if self.config.enable_wikipedia:
-            tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore
+            tools.append(WikipediaQueryRun(api_wrapper=WikipediaAPIWrapper()))  # type: ignore[call-arg]
         if self.config.openweathermap_api_key:
             tools.append(OpenWeatherMapQueryRunEnhanced())
         if self.dalle_model and isinstance(self.dalle_model, OpenAI):
-            tools.append(DallEAPIWrapperRun(client=self.dalle_model))  # type: ignore
+            tools.append(DallEAPIWrapperRun(client=self.dalle_model))  # type: ignore[call-arg]
         if self.config.enable_twitter_translator:
             tools.append(TwitterTranslatorRun())
 
@@ -149,12 +149,12 @@ class LLMAgentExecutor:
             # self.prompt.append can't update input_variables, so need this
             self.prompt.input_variables.append("agent_scratchpad")
             agent = create_openai_functions_agent(self.text_model, tools, self.prompt)
-            agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore
+            agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)  # type: ignore[arg-type]
             async for v in agent_executor.astream(
                 {"input": message, "history": memory.load_memory_variables({})[memory.memory_key]}
             ):
                 if isinstance(v, dict) and "output" in v:
-                    yield v["output"]  # type: ignore
+                    yield v["output"]
             return
 
         chain = (

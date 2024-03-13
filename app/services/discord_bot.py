@@ -9,7 +9,7 @@ from app.config.settings import Settings
 from app.services.http_api import PasteService
 
 logger = logging.getLogger(__name__)
-config = Settings()  # type: ignore
+config = Settings()
 llmAgent = LLMAgentExecutor(config=config)
 paste_service = PasteService()
 
@@ -36,7 +36,7 @@ async def on_message(message: nextcord.Message):
 
     # @ or dm or role mentioned
     role_mentioned = message.guild and [role for role in message.role_mentions if role in message.guild.me.roles]
-    if bot.user.mentioned_in(message) or isinstance(message.channel, nextcord.DMChannel) or role_mentioned:  # type: ignore
+    if bot.user.mentioned_in(message) or isinstance(message.channel, nextcord.DMChannel) or role_mentioned:  # type: ignore[union-attr]
         raw_content = re.compile(r"<[^>]+>").sub("", message.content).lstrip()
         user_id = f"discord-{message.author.id}"
         async with message.channel.typing():
@@ -52,7 +52,7 @@ async def on_message(message: nextcord.Message):
                             if raw_content:
                                 cont.append({"type": "text", "text": raw_content})
                             cont.append({"type": "image_url", "image_url": attachment.url})
-                            response = llmAgent.query(user_id, cont)  # type: ignore
+                            response = llmAgent.query(user_id, cont)  # type: ignore[arg-type]
                             chunks = "".join([r async for r in response])
                 else:
                     if "$clear" == raw_content:

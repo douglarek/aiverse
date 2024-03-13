@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from google.generativeai.types import safety_types  # type: ignore
+from google.generativeai.types import safety_types  # type: ignore[import-untyped]
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 

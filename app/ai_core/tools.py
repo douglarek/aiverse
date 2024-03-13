@@ -2,12 +2,12 @@ from typing import Optional
 
 import httpx
 from bs4 import BeautifulSoup
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.tools.openweathermap.tool import OpenWeatherMapQueryRun
 from langchain_community.utilities.dalle_image_generator import DallEAPIWrapper
 from langchain_core.callbacks import CallbackManagerForToolRun
 from langchain_core.language_models.llms import BaseLanguageModel
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.tools import BaseTool
 
 
@@ -26,7 +26,8 @@ class DallEAPIWrapperRun(BaseTool):
 
     def _run(self, input: str, run_manager: Optional[CallbackManagerForToolRun] = None) -> str:
         """Use DallEAPIWrapperRun tool."""
-        return DallEAPIWrapper(model="dall-e-3").run(LLMChain(llm=self.client, prompt=self.prompt).run(input))  # type: ignore
+        chain = self.prompt | self.client | StrOutputParser()
+        return DallEAPIWrapper(model="dall-e-3").run(chain.invoke({"image_desc": input}))  # type: ignore[call-arg]
 
 
 class AzureDallERun(BaseTool):
@@ -86,8 +87,8 @@ class TwitterTranslatorRun(BaseTool):
         desc = soup.find("meta", property="og:description")
         text = ""
         if title:
-            text += title.get("content", "") + "\n"  # type: ignore
+            text += title.get("content", "") + "\n"  # type: ignore[operator,union-attr]
         if desc:
-            text += desc.get("content", "") + "\n"  # type: ignore
+            text += desc.get("content", "") + "\n"  # type: ignore[operator,union-attr]
 
         return text
