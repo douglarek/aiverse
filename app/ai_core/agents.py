@@ -14,6 +14,7 @@ from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_anthropic import ChatAnthropic
 from langchain_community.chat_models.tongyi import ChatTongyi
+from langchain_community.chat_models.volcengine_maas import VolcEngineMaasChat
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -53,6 +54,9 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_dashscope:
         return ChatTongyi(model=config.dashscope_model)  # type: ignore[call-arg]
+
+    if config.is_volcengine:
+        return VolcEngineMaasChat(model=config.volcengine_model, temperature=config.temperature)  # type: ignore[call-arg]
     raise ValueError("Unknown model type.")
 
 

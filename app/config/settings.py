@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     dashscope_api_key: str | None = None
     dashscope_model: str = "qwen-turbo"
 
+    volc_accesskey: str | None = None
+    volc_secretkey: str | None = None
+    volcengine_model: str = "moonshot-v1-8k"
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None
@@ -71,3 +75,7 @@ class Settings(BaseSettings):
     @property
     def is_groq(self) -> bool:
         return self.groq_api_key is not None
+
+    @property
+    def is_volcengine(self) -> bool:
+        return self.volc_accesskey is not None and self.volc_secretkey is not None
