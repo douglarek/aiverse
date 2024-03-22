@@ -18,11 +18,15 @@ from langchain_community.chat_models.volcengine_maas import VolcEngineMaasChat
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from langchain_google_genai import (
+    ChatGoogleGenerativeAI,
+    HarmBlockThreshold,
+    HarmCategory,
+)
 from langchain_groq.chat_models import ChatGroq
 from langchain_mistralai.chat_models import ChatMistralAI
 from langchain_openai import ChatOpenAI, OpenAI
 
-from app.ai_core.models import ChatGoogleGenerativeAIWithoutSafety
 from app.ai_core.tools import (
     DallEAPIWrapperRun,
     OpenWeatherMapQueryRunEnhanced,
@@ -45,8 +49,17 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         )
 
     if config.is_google:
-        return ChatGoogleGenerativeAIWithoutSafety(
-            model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True, max_retries=config.max_retries  # type: ignore[arg-type,call-arg]
+        return ChatGoogleGenerativeAI(  # type: ignore[arg-type,call-arg]
+            model="gemini-pro",
+            temperature=config.temperature,
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            },
+            convert_system_message_to_human=True,
+            max_retries=config.max_retries,
         )
 
     if config.is_groq:
@@ -68,7 +81,18 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
         return ChatOpenAI(model="gpt-4-vision-preview")
 
     if config.is_google:
-        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature, max_retries=config.max_retries)  # type: ignore[call-arg]
+        return ChatGoogleGenerativeAI(  # type: ignore[arg-type,call-arg]
+            model="gemini-pro-vision",
+            temperature=config.temperature,
+            safety_settings={
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            },
+            convert_system_message_to_human=True,
+            max_retries=config.max_retries,
+        )
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
