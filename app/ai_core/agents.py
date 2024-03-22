@@ -36,27 +36,30 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         return ChatOpenAI(
             model=config.openai_model_name,
             temperature=config.temperature,
+            max_retries=config.max_retries,
         )
 
     if config.is_mistral:
-        return ChatMistralAI(temperature=config.temperature, model=config.mistral_model)
+        return ChatMistralAI(
+            temperature=config.temperature, model=config.mistral_model, max_retries=config.max_retries
+        )
 
     if config.is_google:
         return ChatGoogleGenerativeAIWithoutSafety(
-            model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True  # type: ignore[arg-type,call-arg]
+            model="gemini-pro", temperature=config.temperature, convert_system_message_to_human=True, max_retries=config.max_retries  # type: ignore[arg-type,call-arg]
         )
 
     if config.is_groq:
-        return ChatGroq(temperature=0, model=config.groq_model)
+        return ChatGroq(temperature=0, model=config.groq_model, max_retries=config.max_retries)
 
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
     if config.is_dashscope:
-        return ChatTongyi(model=config.dashscope_model)  # type: ignore[call-arg]
+        return ChatTongyi(model=config.dashscope_model, max_retries=config.max_retries)  # type: ignore[call-arg]
 
     if config.is_volcengine:
-        return VolcEngineMaasChat(model=config.volcengine_model, temperature=config.temperature)  # type: ignore[call-arg]
+        return VolcEngineMaasChat(model=config.volcengine_model, temperature=config.temperature, max_retries=config.max_retries)  # type: ignore[call-arg]
     raise ValueError("Unknown model type.")
 
 
@@ -65,7 +68,7 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
         return ChatOpenAI(model="gpt-4-vision-preview")
 
     if config.is_google:
-        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature)  # type: ignore[call-arg]
+        return ChatGoogleGenerativeAIWithoutSafety(model="gemini-pro-vision", temperature=config.temperature, max_retries=config.max_retries)  # type: ignore[call-arg]
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
 
@@ -74,7 +77,7 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
 
 def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
     if config.is_openai:
-        return OpenAI(temperature=config.temperature)
+        return OpenAI(temperature=config.temperature, max_retries=config.max_retries)
 
     return None
 

@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict()
 
     temperature: float = 0.7
+    max_retries: int = 0
 
     google_api_key: str | None = None
 
