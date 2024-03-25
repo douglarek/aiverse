@@ -193,10 +193,7 @@ class LLMAgentExecutor:
             | self.prompt
             | self.text_model
         )
-        if isinstance(self.text_model, ChatTongyi):  # https://github.com/langchain-ai/langchain/pull/16605
-            res = await chain.ainvoke({"input": message})
-            yield res.content
-            return
+
         async for c in chain.astream({"input": message}):
             try:
                 yield c.content
