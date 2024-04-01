@@ -41,10 +41,6 @@ class Settings(BaseSettings):
     dashscope_api_key: str | None = None
     dashscope_model: str = "qwen-turbo"
 
-    volc_accesskey: str | None = None
-    volc_secretkey: str | None = None
-    volcengine_model: str = "moonshot-v1-8k"
-
     aws_bedrock_service_name: str = "bedrock-runtime"
     aws_bedrock_region_name: str = "us-west-2"
     aws_bedrock_model_id: str = "anthropic.claude-v2"
@@ -82,10 +78,6 @@ class Settings(BaseSettings):
     @property
     def is_groq(self) -> bool:
         return self.groq_api_key is not None
-
-    @property
-    def is_volcengine(self) -> bool:
-        return self.volc_accesskey is not None and self.volc_secretkey is not None
 
     @property
     def is_aws_bedrock(self) -> bool:

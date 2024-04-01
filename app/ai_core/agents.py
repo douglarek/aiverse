@@ -16,7 +16,6 @@ from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_anthropic import ChatAnthropic
 from langchain_community.chat_models.bedrock import BedrockChat
 from langchain_community.chat_models.tongyi import ChatTongyi
-from langchain_community.chat_models.volcengine_maas import VolcEngineMaasChat
 from langchain_core.language_models.llms import BaseLanguageModel
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
@@ -72,9 +71,6 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_dashscope:
         return ChatTongyi(model=config.dashscope_model, max_retries=config.max_retries)  # type: ignore[call-arg]
-
-    if config.is_volcengine:
-        return VolcEngineMaasChat(model=config.volcengine_model, temperature=config.temperature, max_retries=config.max_retries)  # type: ignore[call-arg]
 
     if config.is_aws_bedrock:
         c = boto3.client(
