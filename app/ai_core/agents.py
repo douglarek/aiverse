@@ -3,6 +3,7 @@ from operator import itemgetter
 from typing import Any, AsyncIterator, Dict, List, Union
 from venv import logger
 
+import boto3  # type: ignore[import]
 import httpx
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import create_openai_functions_agent
@@ -13,6 +14,7 @@ from langchain.tools.wikipedia.tool import WikipediaQueryRun
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 from langchain.utilities.wikipedia import WikipediaAPIWrapper
 from langchain_anthropic import ChatAnthropic
+from langchain_community.chat_models.bedrock import BedrockChat
 from langchain_community.chat_models.tongyi import ChatTongyi
 from langchain_community.chat_models.volcengine_maas import VolcEngineMaasChat
 from langchain_core.language_models.llms import BaseLanguageModel
@@ -73,6 +75,20 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_volcengine:
         return VolcEngineMaasChat(model=config.volcengine_model, temperature=config.temperature, max_retries=config.max_retries)  # type: ignore[call-arg]
+
+    if config.is_aws_bedrock:
+        c = boto3.client(
+            service_name=config.aws_bedrock_service_name,
+            region_name=config.aws_bedrock_region_name,
+            aws_access_key_id=config.aws_access_key_id,
+            aws_secret_access_key=config.aws_secret_access_key,
+        )
+        return BedrockChat(
+            client=c,
+            model_id=config.aws_bedrock_model_id,
+            model_kwargs={"temperature": config.temperature},
+        )
+
     raise ValueError("Unknown model type.")
 
 
@@ -93,8 +109,22 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
             convert_system_message_to_human=True,
             max_retries=config.max_retries,
         )
+
     if config.is_anthropic:
         return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
+
+    if config.is_aws_bedrock:
+        c = boto3.client(
+            service_name=config.aws_bedrock_service_name,
+            region_name=config.aws_bedrock_region_name,
+            aws_access_key_id=config.aws_access_key_id,
+            aws_secret_access_key=config.aws_secret_access_key,
+        )
+        return BedrockChat(
+            client=c,
+            model_id=config.aws_bedrock_model_id,
+            model_kwargs={"temperature": config.temperature},
+        )
 
     return None
 
@@ -148,7 +178,7 @@ class LLMAgentExecutor:
         logger.info(f"Querying {user} with {message}")
         if isinstance(message, list):
             if self.vision_model:
-                if isinstance(self.vision_model, ChatAnthropic):
+                if isinstance(self.vision_model, ChatAnthropic) or isinstance(self.vision_model, BedrockChat):
                     async with httpx.AsyncClient() as client:
                         r = await client.get(message[1].get("image_url"))  # type: ignore[arg-type,union-attr]
                         img_base64 = base64.b64encode(r.content).decode("utf-8")
@@ -157,7 +187,7 @@ class LLMAgentExecutor:
                     message[1]["image_url"] = {"url": message[1].get("image_url")}  # type: ignore[index,union-attr]
                 msg = HumanMessage(content=message)
                 async for s in self.vision_model.astream([msg]):
-                    yield s.content
+                    yield s.content  # type: ignore
                 return
             raise ValueError("Vision model is not enabled")
 

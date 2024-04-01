@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     volc_secretkey: str | None = None
     volcengine_model: str = "moonshot-v1-8k"
 
+    aws_bedrock_service_name: str = "bedrock-runtime"
+    aws_bedrock_region_name: str = "us-west-2"
+    aws_bedrock_model_id: str = "anthropic.claude-v2"
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: str | None = None
+
     @property
     def is_openai(self) -> bool:
         return self.openai_api_key is not None
@@ -80,3 +86,7 @@ class Settings(BaseSettings):
     @property
     def is_volcengine(self) -> bool:
         return self.volc_accesskey is not None and self.volc_secretkey is not None
+
+    @property
+    def is_aws_bedrock(self) -> bool:
+        return self.aws_access_key_id is not None and self.aws_secret_access_key is not None
