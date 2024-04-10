@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     max_retries: int = 0
 
     google_api_key: str | None = None
+    google_api_model: str = "gemini-1.5-pro-latest"
 
     openai_log: str = "info"
     openai_organization: str | None = None

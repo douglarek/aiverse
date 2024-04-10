@@ -51,7 +51,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
 
     if config.is_google:
         return ChatGoogleGenerativeAI(  # type: ignore[arg-type,call-arg]
-            model="gemini-pro",
+            model=config.google_api_model,
             temperature=config.temperature,
             safety_settings={
                 HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
@@ -94,7 +94,7 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
 
     if config.is_google:
         return ChatGoogleGenerativeAI(  # type: ignore[arg-type,call-arg]
-            model="gemini-pro-vision",
+            model=config.google_api_model,
             temperature=config.temperature,
             safety_settings={
                 HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
