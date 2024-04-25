@@ -114,11 +114,9 @@ httpx==0.25.2
     # via
     #   anthropic
     #   groq
-    #   langchain-mistralai
+    #   mistralai
     #   openai
     #   python-telegram-bot
-httpx-sse==0.4.0
-    # via langchain-mistralai
 huggingface-hub==0.22.2
     # via
     #   tokenizers
@@ -155,7 +153,7 @@ langchain-core==0.1.45
     #   langchain-text-splitters
 langchain-google-genai==1.0.2
 langchain-groq==0.1.3
-langchain-mistralai==0.1.2
+langchain-mistralai==0.0.3
 langchain-openai==0.1.3
 langchain-text-splitters==0.0.1
     # via langchain
@@ -166,6 +164,8 @@ langsmith==0.1.50
     #   langchain-core
 marshmallow==3.21.1
     # via dataclasses-json
+mistralai==0.0.11
+    # via langchain-mistralai
 multidict==6.0.5
     # via
     #   aiohttp
@@ -181,7 +181,9 @@ numpy==1.26.4
 openai==1.23.6
     # via langchain-openai
 orjson==3.10.1
-    # via langsmith
+    # via
+    #   langsmith
+    #   mistralai
 packaging==23.2
     # via
     #   huggingface-hub
@@ -217,6 +219,7 @@ pydantic==2.7.1
     #   langchain
     #   langchain-core
     #   langsmith
+    #   mistralai
     #   openai
     #   pydantic-settings
 pydantic-core==2.18.2
@@ -295,10 +298,9 @@ tenacity==8.2.3
     #   langchain-core
 tiktoken==0.5.2
     # via langchain-openai
-tokenizers==0.15.2
+tokenizers==0.19.1
     # via
     #   anthropic
-    #   langchain-mistralai
     #   transformers
 tornado==6.3.3
     # via python-telegram-bot
@@ -308,7 +310,7 @@ tqdm==4.66.2
     #   huggingface-hub
     #   openai
     #   transformers
-transformers==4.36.2
+transformers==4.40.1
 types-beautifulsoup4==4.12.0.20240229
 types-html5lib==1.1.11.20240228
     # via types-beautifulsoup4
