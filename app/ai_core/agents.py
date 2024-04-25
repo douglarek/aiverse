@@ -67,7 +67,7 @@ def text_model_from_config(config: Settings) -> BaseLanguageModel:
         return ChatGroq(temperature=0, model=config.groq_model, max_retries=config.max_retries)
 
     if config.is_anthropic:
-        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
+        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)  # type: ignore[call-arg]
 
     if config.is_dashscope:
         return ChatTongyi(model=config.dashscope_model, max_retries=config.max_retries)  # type: ignore[call-arg]
@@ -107,7 +107,7 @@ def vison_model_from_config(config: Settings) -> BaseLanguageModel | None:
         )
 
     if config.is_anthropic:
-        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)
+        return ChatAnthropic(temperature=config.temperature, model_name=config.claude_model)  # type: ignore[call-arg]
 
     if config.is_aws_bedrock:
         c = boto3.client(
