@@ -137,7 +137,7 @@ class LLMAgentExecutor:
         [
             (
                 "system",
-                "You are a helpful AI assistant. Note: Always reply in the language used by the user. For example, if the user uses Chinese, be sure to reply in Chinese.",
+                "You are a helpful AI assistant. Note: Always reply in the language that the user uses. For example, if a user uses Chinese, you must respond in Chinese. This is very important to me. If you don't respond according to my instructions, I might lose my job!",
             ),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}"),
