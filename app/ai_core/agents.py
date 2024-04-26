@@ -135,7 +135,10 @@ def dalle_model_from_config(config: Settings) -> BaseLanguageModel | None:
 class LLMAgentExecutor:
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "You are a helpful AI assistant."),
+            (
+                "system",
+                "You are a helpful AI assistant. Note: Always reply in the language used by the user. For example, if the user uses Chinese, be sure to reply in Chinese.",
+            ),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}"),
         ]
