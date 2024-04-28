@@ -1,6 +1,6 @@
 nextcord[voice]==2.6.0
 python-dotenv==1.0.0
-langchain==0.1.16
+langchain==0.1.17rc1
 langsmith
 langchain_openai
 tiktoken==0.5.2
