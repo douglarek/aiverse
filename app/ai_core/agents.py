@@ -225,8 +225,14 @@ class LLMAgentExecutor:
             | self.text_model
         )
 
-        async for c in chain.astream({"input": message}):
-            try:
-                yield c.content
-            except StopIteration:
-                pass
+        try:
+            async for c in chain.astream({"input": message}):
+                try:
+                    yield c.content
+                except StopIteration:
+                    pass
+        except KeyError as e:
+            if "HarmCategory." in str(e):  # gemini safety errors, retutn some sorry emoji
+                yield "Based on safety principles, I am unable to respond to your request. 😢"
+        except Exception as e:
+            yield f"An error occurred: {e}"
