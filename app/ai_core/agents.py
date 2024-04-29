@@ -36,13 +36,6 @@ from app.ai_core.tools import (
 from app.config.settings import Settings
 
 google_safety_settings = {
-    HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_DEROGATORY: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_TOXICITY: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_VIOLENCE: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_SEXUAL: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_MEDICAL: HarmBlockThreshold.BLOCK_NONE,
-    HarmCategory.HARM_CATEGORY_DANGEROUS: HarmBlockThreshold.BLOCK_NONE,
     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
     HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
@@ -226,11 +219,8 @@ class LLMAgentExecutor:
         )
 
         try:
-            async for c in chain.astream({"input": message}):
-                try:
-                    yield c.content
-                except StopIteration:
-                    pass
+            c = await chain.ainvoke({"input": message})
+            yield c.content
         except KeyError as e:
             if "HarmCategory." in str(e):  # gemini safety errors, retutn some sorry emoji
                 yield "Based on safety principles, I am unable to respond to your request. 😢"
