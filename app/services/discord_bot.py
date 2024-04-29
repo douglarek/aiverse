@@ -1,5 +1,6 @@
 import logging
 import re
+from io import BytesIO
 
 import nextcord
 from nextcord.ext import commands
@@ -70,9 +71,11 @@ async def on_message(message: nextcord.Message):
                     chunks = "".join([r async for r in response])
                 llmAgent.save_history(user_id, raw_content, chunks)
                 if len(chunks) > 2000:
-                    d = await paste_service.create_paste(data=chunks)
-                    suffix = f" [:link: click here to see more text ...]({d})"
-                    await message.channel.send(chunks[: 2000 - len(suffix)] + suffix, reference=message)
+                    await message.channel.send(
+                        chunks[:2000],
+                        reference=message,
+                        file=nextcord.File(fp=BytesIO(bytes(chunks, encoding="utf-8")), filename="message.md"),
+                    )
                     return
                 await message.channel.send(chunks, reference=message)
             except Exception as e:
